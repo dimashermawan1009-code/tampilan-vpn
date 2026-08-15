@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tampilan VPN iOS</title>
+  <style>
+    /* Reset & Base Style */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 12px;
+    }
+
+    /* Container Utama */
+    .app-container {
+      width: 100%;
+      max-width: 390px;
+    }
+
+    /* Utilitas Perpindahan Layar */
+    .screen {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Top Navigation Bar Header */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      position: relative;
+      height: 44px;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    /* Tombol Kembali Lingkaran Hitam */
+    .back-btn {
+      width: 38px;
+      height: 38px;
+      background-color: #1c1c1e;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      z-index: 2;
+      flex-shrink: 0;
+    }
+
+    .back-btn:active {
+      background-color: #2c2c2e;
+    }
+
+    .back-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: #ffffff;
+      stroke-width: 3;
+      fill: none;
+    }
+
+    /* Judul Layar 1 (Kiri) */
+    .header-title-left {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      color: #ffffff;
+      margin-left: 14px;
+    }
+
+    /* Judul Layar 2 (Tepat di Tengah Header seperti foto 533.jpg) */
+    .header-title-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #ffffff;
+    }
+
+    /* Kartu / Container Kapsul Utama */
+    .card {
+      background-color: #1c1c1e;
+      border-radius: 22px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      min-height: 60px;
+    }
+
+    .card:active {
+      background-color: #2c2c2e;
+    }
+
+    .card-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* Ikon VPN Presisi */
+    .vpn-app-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(180deg, #2a2a2c 0%, #121213 100%);
+      border: 1px solid #3a3a3c;
+      border-radius: 9px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .vpn-app-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: #0a84ff;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    /* Teks VPN Putih */
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1;
+    }
+
+    .card-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #8e8e93;
+      font-size: 17px;
+    }
+
+    .chevron {
+      font-size: 20px;
+      color: #48484a;
+      font-weight: 600;
+    }
+
+    /* Kartu Teks Biru */
+    .blue-card {
+      color: #0a84ff;
+      font-size: 17px;
+      font-weight: 400;
+      padding: 16px 18px;
+      min-height: 56px;
+    }
+
+    /* Catatan Teks Bawah (Disesuaikan Barisnya) */
+    .info-text {
+      font-size: 14px;
+      color: #8e8e93;
+      padding: 0 4px;
+      line-height: 1.35;
+      letter-spacing: -0.1px;
+    }
+
+    .info-text a {
+      color: #0a84ff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <div id="screen-main" class="screen active">
+      <div class="nav-bar">
+        <button class="back-btn" aria-label="Kembali">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <h1 class="header-title-left">Manajemen VPN & Perangkat</h1>
+      </div>
+
+      <div class="card" onclick="goToScreen('screen-vpn')">
+        <div class="card-left">
+          <div class="vpn-app-icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="9" r="6.5" />
+              <path d="M5.8 9h12.4" />
+              <path d="M12 2.5C9.8 4.5 9 6.8 9 9s.8 4.5 3 6.5" />
+              <path d="M12 2.5C14.2 4.5 15 6.8 15 9s-.8 4.5-3 6.5" />
+              <path d="M12 15.5v3.5" />
+              <path d="M6 19h12" />
+              <circle cx="12" cy="19" r="1" fill="#0a84ff" stroke="none" />
+            </svg>
+          </div>
+          <span class="card-title">VPN</span>
+        </div>
+        <div class="card-right">
+          <span>Tidak Terhubung</span>
+          <span class="chevron">›</span>
+        </div>
+      </div>
+
+      <div class="card blue-card">
+        <span>Masuk ke Akun Kantor atau Sekolah...</span>
+      </div>
+    </div>
+
+    <div id="screen-vpn" class="screen">
+      <div class="nav-bar">
+        <button class="back-btn" onclick="goToScreen('screen-main')" aria-label="Kembali">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <h1 class="header-title-center">VPN</h1>
+      </div>
+
+      <div class="card blue-card">
+        <span>Konfigurasi VPN...</span>
+      </div>
+
+      <p class="info-text">
+        VPN dapat diatur untuk mengontrol perutean lalu lintas jaringan tertentu. <a href="#">Mengenai VPN &amp; Privasi...</a>
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    function goToScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
