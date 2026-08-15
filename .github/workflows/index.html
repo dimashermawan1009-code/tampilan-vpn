@@ -1,0 +1,68 @@
+<div class="app-container">
+    
+    <div id="screen-main" class="screen active">
+      <div class="nav-bar">
+        <button class="back-btn" aria-label="Kembali">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <h1 class="header-title-left">Manajemen VPN & Perangkat</h1>
+      </div>
+
+      <div class="card" onclick="goToScreen('screen-vpn')">
+        <div class="card-left">
+          <div class="vpn-app-icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="9" r="6.5" />
+              <path d="M5.8 9h12.4" />
+              <path d="M12 2.5C9.8 4.5 9 6.8 9 9s.8 4.5 3 6.5" />
+              <path d="M12 2.5C14.2 4.5 15 6.8 15 9s-.8 4.5-3 6.5" />
+              <path d="M12 15.5v3.5" />
+              <path d="M6 19h12" />
+              <circle cx="12" cy="19" r="1" fill="#0a84ff" stroke="none" />
+            </svg>
+          </div>
+          <span class="card-title">VPN</span>
+        </div>
+        <div class="card-right">
+          <span>Tidak Terhubung</span>
+          <span class="chevron">›</span>
+        </div>
+      </div>
+
+      <div class="card blue-card">
+        <span>Masuk ke Akun Kantor atau Sekolah...</span>
+      </div>
+    </div>
+
+    <div id="screen-vpn" class="screen">
+      <div class="nav-bar">
+        <button class="back-btn" onclick="goToScreen('screen-main')" aria-label="Kembali">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <h1 class="header-title-center">VPN</h1>
+      </div>
+
+      <div class="card blue-card">
+        <span>Konfigurasi VPN...</span>
+      </div>
+
+      <p class="info-text">
+        VPN dapat diatur untuk mengontrol perutean lalu lintas jaringan tertentu. <a href="#">Mengenai VPN &amp; Privasi...</a>
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    function goToScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
