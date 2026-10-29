@@ -1,267 +1,102 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <link rel="apple-touch-icon" sizes="180x180" href="IMG_20260815_205044_008.jpg">
-<link rel="icon" type="image/jpeg" sizes="192x192" href="IMG_20260815_205044_008.jpg">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tampilan VPN iOS</title>
-  <style>
-    /* Reset & Base Style */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pengaturan – Umum</title>
+<style>
+  :root { --bg:#000; --card:#1c1c1e; --line:#38383a; --label:#fff; --muted:#8e8e93; --blue:#0a84ff; --dur:.34s; }
+  * { -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; margin:0; background:var(--bg); color:var(--label);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; overscroll-behavior:none; }
+  #app { position:relative; max-width:480px; height:100%; margin:0 auto; overflow:hidden; background:#000; }
 
-    body {
-      background-color: #000000;
-      color: #ffffff;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding: 12px;
-    }
+  .page { --bar-h:calc(64px + env(safe-area-inset-top,0px)); position:absolute; inset:0; overflow:hidden; background:#000;
+    transform:translateX(100%); visibility:hidden; touch-action:pan-y; will-change:transform;
+    transition:transform var(--dur) cubic-bezier(.32,.72,0,1), visibility 0s linear var(--dur); }
+  .page.active  { transform:none; visibility:visible; transition-delay:0s; }
+  .page.behind  { transform:translateX(-28%); visibility:visible; transition-delay:0s; pointer-events:none; }
+  .page.deep    { transform:translateX(-28%); }
+  .page.dragging{ visibility:visible; transition:none; }
+  .scroll > .content { min-height:calc(100% + 1px); }
+  .page.sweep { border-radius:44px 0 0 44px; box-shadow:-10px 0 40px rgba(0,0,0,.6); }
 
-    /* Container Utama */
-    .app-container {
-      width: 100%;
-      max-width: 390px;
-    }
+  .note { color:var(--muted); font-size:15px; line-height:1.35; margin:-14px 16px 28px; }
+  .note a { color:var(--blue); text-decoration:none; }
 
-    /* Utilitas Perpindahan Layar */
-    .screen {
-      display: none;
-      flex-direction: column;
-      gap: 16px;
-      width: 100%;
-    }
+  .bar { position:absolute; top:0; left:0; right:0; z-index:50; height:var(--bar-h); box-sizing:border-box;
+    display:flex; align-items:center; justify-content:center; padding:env(safe-area-inset-top,0px) 16px 0;
+    background:none; pointer-events:none; }
+  .bar .back { pointer-events:auto; }
+  .scroll { position:absolute; inset:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y;
+    padding:calc(var(--bar-h) + 24px) 16px calc(40px + env(safe-area-inset-bottom,0px));
+    -webkit-mask-image:linear-gradient(to bottom, transparent calc(var(--bar-h) - 28px), black calc(var(--bar-h) + 20px));
+    mask-image:linear-gradient(to bottom, transparent calc(var(--bar-h) - 28px), black calc(var(--bar-h) + 20px)); }
+  .bar h1 { font-size:17px; font-weight:600; margin:0; max-width:calc(100% - 120px); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar.left { justify-content:flex-start; padding-right:0; }
+  .bar.left h1 { margin-left:57px; max-width:none; overflow:visible; text-overflow:clip; text-align:left; letter-spacing:-.2px; }
+  .back { position:absolute; left:16px; top:calc(10px + env(safe-area-inset-top,0px)); width:44px; height:44px; border-radius:50%;
+    z-index:2; display:grid; place-items:center; background:#1c1c1e; border:1px solid rgba(255,255,255,.12);
+    color:#f2f2f7; cursor:pointer; padding:0; outline:none; touch-action:manipulation; transition:opacity .2s ease; }
+  .back:focus, .back:focus-visible { outline:none; box-shadow:none; }
+  .back:active, .back.pressed { opacity:.5; transition:none; }
+  .row:focus-visible { outline:2px solid var(--blue); outline-offset:-2px; }
 
-    .screen.active {
-      display: flex;
-    }
+  .card { background:var(--card); border-radius:26px; margin-bottom:28px; overflow:hidden; }
+  .row { display:flex; justify-content:space-between; align-items:center; width:100%; min-height:52px; padding:0 16px; gap:14px; text-align:left;
+    background:none; border:0; color:inherit; font:inherit; font-size:17px; cursor:default; position:relative; box-sizing:border-box; }
+  .row.nav { cursor:pointer; user-select:none; -webkit-user-select:none; touch-action:manipulation; transition:background-color .25s ease; }
+  .row.nav:active, .row.nav.pressed { background-color:rgba(255,255,255,.1); transition:none; }
+  .row + .row::before { content:""; position:absolute; top:0; right:0; height:1px; background:var(--line); left:16px; }
+  .row.has-icon { padding:0 14px; }
+  .row.has-icon + .row.has-icon::before { left:56px; }
 
-    /* Top Navigation Bar Header */
-    .nav-bar {
-      display: flex;
-      align-items: center;
-      position: relative;
-      height: 44px;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
+  /* ---------- Ikon: kotak gelap + ikon milikmu ---------- */
+  .ico { flex:none; width:28px; height:28px; border-radius:7px; display:grid; place-items:center; box-sizing:border-box;
+    background:linear-gradient(160deg,#2f2f31,#161617); border:1px solid rgba(255,255,255,.14); box-shadow:inset 0 1px 0 rgba(255,255,255,.07); }
+  .ico img { display:block; width:18px; height:18px; object-fit:contain; }
+  .head-card .big img { width:40px; height:40px; }
 
-    /* Tombol Kembali Lingkaran Hitam */
-    .back-btn {
-      width: 38px;
-      height: 38px;
-      background-color: #1c1c1e;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      border: none;
-      outline: none;
-      z-index: 2;
-      flex-shrink: 0;
-    }
-
-    .back-btn:active {
-      background-color: #2c2c2e;
-    }
-
-    .back-btn svg {
-      width: 20px;
-      height: 20px;
-      stroke: #ffffff;
-      stroke-width: 3;
-      fill: none;
-    }
-
-    /* Judul Layar 1 (Kiri) */
-    .header-title-left {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.4px;
-      color: #ffffff;
-      margin-left: 14px;
-    }
-
-    /* Judul Layar 2 (Tepat di Tengah Header seperti foto 533.jpg) */
-    .header-title-center {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      color: #ffffff;
-    }
-
-    /* Kartu / Container Kapsul Utama */
-    .card {
-      background-color: #1c1c1e;
-      border-radius: 22px;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
-      min-height: 60px;
-    }
-
-    .card:active {
-      background-color: #2c2c2e;
-    }
-
-    .card-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    /* Ikon VPN Presisi */
-    .vpn-app-icon {
-      width: 34px;
-      height: 34px;
-      background: linear-gradient(180deg, #2a2a2c 0%, #121213 100%);
-      border: 1px solid #3a3a3c;
-      border-radius: 9px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-shrink: 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    }
-
-    .vpn-app-icon svg {
-      width: 22px;
-      height: 22px;
-      stroke: #0a84ff;
-      stroke-width: 1.6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      fill: none;
-    }
-
-    /* Teks VPN Putih */
-    .card-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #ffffff;
-      line-height: 1;
-    }
-
-    .card-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #8e8e93;
-      font-size: 17px;
-    }
-
-    .chevron {
-      font-size: 20px;
-      color: #48484a;
-      font-weight: 600;
-    }
-
-    /* Kartu Teks Biru */
-    .blue-card {
-      color: #0a84ff;
-      font-size: 17px;
-      font-weight: 400;
-      padding: 16px 18px;
-      min-height: 56px;
-    }
-
-    /* Catatan Teks Bawah (Disesuaikan Barisnya) */
-    .info-text {
-      font-size: 14px;
-      color: #8e8e93;
-      padding: 0 4px;
-      line-height: 1.35;
-      letter-spacing: -0.1px;
-    }
-
-    .info-text a {
-      color: #0a84ff;
-      text-decoration: none;
-    }
-  </style>
+  .val { margin-left:auto; color:var(--muted); font-size:17px; text-align:right; white-space:nowrap; }
+  @media (max-width:380px) { .row { gap:8px; } .val { font-size:16px; } }
+  @media (max-width:340px) { .row { font-size:15px; padding:0 12px; } .val { font-size:14px; } }
+  .chev { flex:none; width:8px; height:14px; color:#636366; margin-left:2px; }
+  .lbl { white-space:nowrap; }
+  .link { color:var(--blue); }
+  .head-card { padding:20px 20px 22px; }
+  .head-card .big { width:60px; height:60px; border-radius:16px; }
+  .sec { color:var(--muted); font-size:15px; font-weight:600; margin:0 0 8px 16px; }
+  @media (min-width:700px) { body { background:#0b0b0c; } #app { height:min(100%,900px); margin-top:max(0px,calc((100% - 900px)/2)); border-radius:28px; box-shadow:0 0 0 1px #222; } }
+  @media (prefers-reduced-motion:reduce) { .page { transition:none; } }
+</style>
 </head>
 <body>
+<div id="app">
+  <section id="page-main" class="page active" aria-label="Umum">
+    <nav class="bar"><button class="back" aria-label="Kembali"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 2 10l8 8"/></svg></button><h1>Umum</h1></nav>
+    <div class="scroll"><div id="main-list" class="content"></div></div>
+  </section>
+  <section id="page-about" class="page" aria-label="Mengenai">
+    <nav class="bar"><button class="back" data-back aria-label="Kembali ke Umum"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 2 10l8 8"/></svg></button><h1>Mengenai</h1></nav>
+    <div class="scroll"><div id="about-list" class="content"></div></div>
+  </section>
+  <section id="page-vpnmgmt" class="page" aria-label="Manajemen VPN &amp; Perangkat">
+    <nav class="bar"><button class="back" data-back aria-label="Kembali ke Umum"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 2 10l8 8"/></svg></button><h1>Manajemen VPN &amp; Perangkat</h1></nav>
+    <div class="scroll"><div id="vpnmgmt-list" class="content"></div></div>
+  </section>
+  <section id="page-vpn" class="page" aria-label="VPN">
+    <nav class="bar"><button class="back" data-back aria-label="Kembali ke Manajemen VPN &amp; Perangkat"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 2 10l8 8"/></svg></button><h1>VPN</h1></nav>
+    <div class="scroll"><div id="vpn-list" class="content"></div></div>
+  </section>
+  <section id="page-cert" class="page" aria-label="Pengaturan Kepercayaan Sertifikat">
+    <nav class="bar left"><button class="back" data-back aria-label="Kembali ke Mengenai"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 2 10l8 8"/></svg></button><h1>Pengaturan Kepercayaan Sertifikat</h1></nav>
+    <div class="scroll"><div id="cert-list" class="content"></div></div>
+  </section>
+</div>
 
-  <div class="app-container">
-    
-    <div id="screen-main" class="screen active">
-      <div class="nav-bar">
-        <button class="back-btn" aria-label="Kembali">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <h1 class="header-title-left">Manajemen VPN & Perangkat</h1>
-      </div>
-
-      <div class="card" onclick="goToScreen('screen-vpn')">
-        <div class="card-left">
-          <div class="vpn-app-icon">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="9" r="6.5" />
-              <path d="M5.8 9h12.4" />
-              <path d="M12 2.5C9.8 4.5 9 6.8 9 9s.8 4.5 3 6.5" />
-              <path d="M12 2.5C14.2 4.5 15 6.8 15 9s-.8 4.5-3 6.5" />
-              <path d="M12 15.5v3.5" />
-              <path d="M6 19h12" />
-              <circle cx="12" cy="19" r="1" fill="#0a84ff" stroke="none" />
-            </svg>
-          </div>
-          <span class="card-title">VPN</span>
-        </div>
-        <div class="card-right">
-          <span>Tidak Terhubung</span>
-          <span class="chevron">›</span>
-        </div>
-      </div>
-
-      <div class="card blue-card">
-        <span>Masuk ke Akun Kantor atau Sekolah...</span>
-      </div>
-    </div>
-
-    <div id="screen-vpn" class="screen">
-      <div class="nav-bar">
-        <button class="back-btn" onclick="goToScreen('screen-main')" aria-label="Kembali">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <h1 class="header-title-center">VPN</h1>
-      </div>
-
-      <div class="card blue-card">
-        <span>Konfigurasi VPN...</span>
-      </div>
-
-      <p class="info-text">
-        VPN dapat diatur untuk mengontrol perutean lalu lintas jaringan tertentu. <a href="#">Mengenai VPN &amp; Privasi...</a>
-      </p>
-    </div>
-
-  </div>
-
-  <script>
-    function goToScreen(screenId) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(screenId).classList.add('active');
-    }
-  </script>
-
-</body>
-</html>
+<script>
+/* ---------- IKON KAMU ----------
+   Ikonmu sudah tertanam (base64). Ganti nilainya dengan path/URL gambar lain bila perlu. */
+const ICON_SRC = {
+  reset:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEoAAABYCAYAAABSzmHhAAAABGdBTUEAALGPC/xhBQAAAWNpQ0NQa0NHQ29sb3JTcGFjZURpc3BsYXlQMwAAKJF9kLFLw1AQxr9WpaB1EB0cHDKJQ5SSCro4tBVEcQhVweqUvqapkMZHkiIFN/+Bgv+BCs5uFoc6OjgIopPo5uSk4KLleS+JpCJ6j+N+fO+74zggOW5wbvcDqDu+W1zKK5ulLSX1jAS9IAzm8Zyur0r+rj/j/T703k7LWb///43Biukxqp+UGcZdH0ioxPqezyXvE4+5tBRxS7IV8onkcsjngWe9WCC+JlZYzagQvxCr5R7d6uG63WDRDnL7tOlsrMk5lBNYxA48cNgw0IQCHdk//LOBv4BdcjfhUp+FGnzqyZEiJ5jEy3DAMAOVWEOGUpN3ju53F91PjbWDJ2ChI4S4iLWVDnA2Rydrx9rUPDAyBFy1ueEagdRHmaxWgddTYLgEjN5Qz7ZXzWrh9uk8MPAoxNskkDoEui0hPo6E6B5T8wNw6XwBA6diE6SWDlsAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAARjSUNQDA0AAW4D4+8AAABEZVhJZk1NACoAAAAIAAIBEgADAAAAAQABAACHaQAEAAAAAQAAACYAAAAAAAKgAgAEAAAAAQAAAEqgAwAEAAAAAQAAAFgAAAAA7p3UBAAASb9pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDYuMC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6YXBwbGVfcHBrPSJodHRwOi8vbnMuYXBwbGUuY29tL1BhcGVyS2l0LzEuMC8iCiAgICAgICAgICAgIHhtbG5zOmV4aWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vZXhpZi8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyI+CiAgICAgICAgIDxhcHBsZV9wcGs6ZW5jX21vZGVsPndnMDgxaVNsL3Z0Q3Y4UDB1eVFRUG9CUFI0dStZRTRMRldWbUtWSzFIc3lLR3EyODZCc3BXdFdyNEllVFdXMEUyTTZMeVZJYlUxR2VRSmlaS3hiRmJKVFdCcFMzOFRFZzBuKzljckN3b2toWXJxZ0orbGNyVGwvd0Nob0dYalR4SFRSMVlUQlJUdm00a0dYOGkvSi9NM2NjZ3EzSkNCZUR6QTNXVXV0Y0FUTm9JaGhYdUZTNkt6a1lCbWRNa01SWnU1d29MVDZGY2lVazVGcHVqQWhzM2dHSkRPL25Sd3pIeWpCQVNpMkFnUWNiTjRCVkQwVlRzeUhVMmRDMDFVS3BoRzJiSmY4Q1hrd2QvNkFPTzBxbll2YkpSOXMwSGpLYkZyUkFjU0FCU3BURlVIVjd3aHlIamJQMHprT2tpRkFtTUdBUlJVS0o3clVFSWNHSFU0aTlWSHd4VWFiL1ZaR0VCR0RUWkJZbzhTM1FYSjZ1WGRnMUo1RVArYUNkK2kxbGJ6STE4aWIzbTc1b3NiOE1FTnUxSkF2aVNFY09EVlhZNG1JcDliaEZOMUplZlMxVDhxRGpEbkplZGF3ekZhOERxQWVmRm9XM2RyNzRuNWhwUm1nZWR2U2k2WVR2eFVhcHZWcEdRMGczUWR4bURSKzVURjN6bEdQWS9hOUU1aVFPNFFGVFpGT29YTkhORWRWNlNRNGNhOTV2b1MxZ1hxQ1IxNk5jOTV0VkJRalNHVmp5RUlYenBQZGhQL1hvTWRjMmwxcTNSenZ5M1NqcklUNmFzNnVpNW93aTkrQlg4VmFNRENSNXEvemxmSUJUSVhaZ3ROOUoyRlRLVDM5YXEzSzlZajJBdlI2RlNwQjRzVkhtOThKZjI2NXF5N05Cb2tnb3NuVVpRcXg0ZUVQdk5BcVNYTDJYK3B5UXRqN0szcjR2RC9HU2xod0w0cVlnbHFudG0wWWZYVUk2S0VRY1phVVlOQlJyS3YzVWRjd3NzZndZbUdnV2Z3ZDl4dkE4clc1V2U4RWtVTlV3aW5Sb0gwaGNFQkVCSW5GWCs4UERDTXhEVFJrczYyY1NhbzFLNlhoNEZycGR6bnd2VG9HM0wyNG45ZXJyYVdCU1BGbXViaG5pZU1rQU41Qkw2Tkc0OHI5S1gxN1NwZHQrVjBLYUk3QVMzOWZ3Vk1SbU9wR0Vqa0wydGpDT2o4eVZxTVpRTHNWUGhNRkV6b0ZwRkVQOTZyZDBBcHVKSDloWmJoazJtY2ZtR1lTaEJLN3lpRjJ6UWNXZnhyOWZMdUMvRnp5Y1oxRGFqMjVORmxIdE50eFdsd3lIM2dncEdOSWhScVFWallsV091WTByNDNHczIzc1FwL3JTM3JFSkV1UmVsZTg3ZVdVSHo5bWxwenlDUkxVRDd1L3pJbGNleHdkS0ZYU3p3cE9TZ1luR2xnM3hWSXBxV3RaNG5zRVdoanBFbDV1ZThEK1lhNnB2OURXTWt1TDNWMmRLYWZsRDZxdEJnMDRJOUdFUW92WThpNlpaQjJXdFl3QXFxRlFxS1JkWldWcDRVSFk2WVlTVE9kUjVvWmRJOXlmTTBTdzIyRzRpbGhpQ3lxUmwvanRhdlhFcmFmelMwUFNCQTdiQk1rWFVuVU5nZFBmTUFPYTNMcDhDZ0lSTllzWjdFa3JWWjdsRm1zVysvanoyVUw5TmlhQ1JwK0NRK2QrZ0pHZEtvUTZBVTluekZLQUhibXVtSU00OGxwSk1KZVNSbytuV0tLNTF2U09zOWpvc2xaQ2FJWFFPYTJEOGcxazZkL2grTzBzMzNLRnJ6Zkl4cnJieXYyS2dRdDFIeUsrS2l0bHdObFFHTmYzSVJyQVRlZkZFS1lEWkQ3eElCQktEek0wenRCb0pGUmIrcWt5UTJDYVhOMmo0Q2tPc01lUUtGcFlKTWNKNjVOL01xSzlhSVJUTmdPc0FiV2tHU3czblpGR2JCRUdYbG92RnNMd1NwZk5SRDZMZmxqeEJ2cTg5ODdzRDZNNENpbnpHSk9WeGc4NmROZUFocXc1S1VXWUlkZUtGQ1pUSkZhNW1weWpNOFpzTEJ4Qk92OEMwNVo4Zy8wM0pVZmpiOTA2Z2tXUHVzd3JEM2orelpnSm4ybG5mazN1U0xwVkNrZ1J3Q0hwS1pUNXJDbUdGc3FXaG5laUZSOXBpb1B3WUdPbDB6UG81T2w0emtUcGZia2x1bXpOc0RmOEpyQkEwN1VpZk92TVhvWG9ZcjM4QlRUZDc2N0JHYjI5aGJmVzBRb1BsbGFXRGJwamkzNEYzdU1uUktxNEFja1NKbHlRcDYvNURTWmVxeSs3S21jVVJCVWxRcVZUdTlyT1I5ZE11N1pOWXlYaTE4ZEpmU3pUbUNjelJDY0RFRjBDaGliVGtUTXRVTFhySlNwQm1KaFc1NDJieUJhSFJ3TDExS2tQVTR2L0tCU0ZiMzUrR29hLzdmYkR2OVhuellnenk5YUZmTzE3WVgwa1dhck5iUDh3ZnlPeVJTUExPbnZtdTFEaEFSak5MclBFRlZ5SWtNZnF6WEFOZFpXK05vRHRSZllWOWNodWVGcjZLVGNVa0xVNlJCVWV6NlE5UHNwY2VkNVNKa0EwZkhmYmZ6aFY4b0RGVGV3OXJFKzV3cVBvTVUvZWVleURHMFJoM3NuditkTzNDcjF1aGhYS3l0OGEvL1hCR3ZRUGZqdlp5YnFweFZUWG5ERGRyb0pURDhZNFVOUWVic3hVU1ZXVXFuUVRSU0Nvd01Zb3k0emxDd2phZk1OTkdnZWZZNjU2amF5VG5oSHoxZnVwMWVWemdQcDZ3ajhjWW9mdG0yS3J3VktLaDB0QUgwdjFKbEVhdERSZ28rdWRIRDQ2ZHkyR3hHVE42S21PSDFtcjVVcnJtOE9ZTkJrR1RZZWJRZUFwbEtQMnZFeWNqeldHZ1NpbVB2blBOZVNiL3AvK3FMOTQrcmZ2TFY0NStMT3Zlc0ludTUwZmxGblZjT0szNGJ6Q1VwQSt4eDltdm9hU3BBdXBZQi9vV2ZrOUpHOFhWMW5BQ0haQm4rMWRORm5Ib3A4U1hwNUJFSS80ZE9SazlpbTNkR3FkcTBNWU9iYWJTb2xaZlFmWVBPYTVvNktEUmJlYU9XK3ViMHdQRk5kWURUYllSSlh5VXZlK2tGVWVQMFg2VktMU1BSVkhUQVc3cWtFZVlpbmMxdjQ1THlMRXl5VDJ5QnpMblZiaE9LYjRDSUhmaFFFS1ZlTjhiMkk0aGRsUTYweWd4SHRzeHVKbEhxZmtmdXY5bUNZVHBKRi9ocGFmRlV3TmZVZ1JjQTVDaDBPK2dWM3p1c2VRY3c3b1pkQ0c5WDRGY29RMzZ6NVFEbW45RU1wY25rNzJyd3l3bnlkbU9qUTh1Qm5VUVBzdkcxcWt5cVZuNUl5YlpUZFdNb2toa3JlY3JPdUtUamV2SE1NeDNoc3Zaa0VqRWphYUtuSnVtQ1ZDVXU4WUtMbUc0R1lIeGM1ZmhkemhIbWlTOHZrQ3NmTStVbk8zaXhyVm8xcnlnMnNKb0pjWFBNc2NBR1FmSjkxUzB5UU13TStiQzd3QVFMbUtEenZzaWNvWm5SMjBGWmhFWmJZSUpZTmtERUw4emZ3NkJTMUJKczBHUEtCREdQMmhFa3plK042OFY2U1pwZ2I0bHFINzdFaElJdHMxWHBWR2RXMGRvVVJFOWtiTzlDbElDWWxKRGI4cVhHb081MUY1L05sazNkc0tKVVVyaTZxcXJzQkphcWM4bVMwalVXeXhHTWFVekpvRjhOZENmQzNnQWtUL2QwRXQ4YlI2OWFFVjhOQmhuK3NyWitXWmJQOUlFUGZiUURhK3p0WThabHU1bHpEaFNHc1hGWk4xL2JJMGIxT09zUEZXbmd2dGkvOE90RGNuMm01ZTlPUy9kSCtnSWFCU29nM0NtektPWTYzRjBRNVhPMG84VzNVMlNlTHVlRUtpZFlqem02N2NvMXFWdk5kWDRFd2ZhWVk1cG00ZTVwNHFHaytUa1FzcStURklsaTc3WWNWaGR3VFVRS2VWZlFuNVNPN3haVFo1ZFNKbmtIOVZBcXFDeWtVVW9qWGpFbjBtcUQvcW5mWHk4dEpUUjBYcGJNZDNYMExwY0psbk4vb1QybWtxeHUyR1pwRFZYSVFPUWVBNkVMSVUxb29pYnJvWHJGV1U3bGtZbzhGYUFVeDQ1WUxVZDhqR0R5UXc2K0ZPWGVLUWp6QkYzOFV3dFVjR1B2QUg3OEFIVUFJSFJrQldXdnF1Umg4Q3ZBSnp1elhXR2FHNzAwN3V2ZUhTWXdPMUJkN2poY1B4WmFrNU5nSG4xVkRuWmMvaEZoaDdCRDFYU1NZbU1LbUxTZkdQTG1DOVlyaU00RFlhUlRhVk51S1pLd0R0SUJJSmlJdVV1TXEyTUM0bjV6YkUyWjFKQTF6QUF2dHFMVzhINmJjekRnWnZMTDBjVEIvQ1FqTGxpTzUrSWk5cy9IQzh3UVlndXZRVk9IMTNYTmw4Lzd3a0J3SUJVa1ZFUkRtQWpKWVJJN2wzOGxka3lwQnp1ZGkvNkttR0JLNVpsUGk3OG1vU2FZN2JnV3lSVHRFemQ1NlVScGg1QUl4T3NPY2phOGI5YTh1VVFQb3oyNTFPY3U1clVtZ3hidzRvOEFJTllZZXE0MlJCMXUxQnJOMUp6UExzaWRvbWY0MDFrRWkwSXlzODRnbFJ4NVdpWGFTb3VEVE9xYldFc25HZ2ZSRmFDelFpRDFBNEkzalJabytUTEs1NERsUjhyR0JiTVJPYU9WOFVZUytLemxFZlJkZnY0SUZ5cFFHTTNWTGtBSEZTdlRGSUpDYVVjOXNtY2t0eXJ1UjNacmJ5MVYvdWw4MzBKYnBkc1NWS043OHYrWmgwT29TVGlUMFNtcXRBNUxYTWp6ZXZ4Q24yei9tY3BVVk5GbzNvdU41M0xZaG4xMHUwaStIWWV4blJuWWZDYzRwc0xHRXREWUlzQXV3THF3TjVRUjF3Yk93SUkzRTFMTkQyNVlFV0xlMGFVNWp1NVByVDJzYkgrY2NhTzUvWE56SXhSaEdUZW9EN1gxVDZ1MWtnVm0wYlBDZUpSYmdHaWd4S0ZCbkJ1VUZpcEpYcmozbVBIU0hXQjZ0ZlJxaERYQTY3TGZZS1h3ZzJlcUk4bnM4SUJ2UVljbVFoTFJRdXF4WHR6NlpPS3ZDMzJKL21XQzdseDRCOHlWM0RZaThCczZBaWJUd01mREE4dUZjZFZvdHliMjNuZVEyQ1A4RTNWY3V5aXBoZjBCZm5HOXQyOFhpV2xacGsrZ3NvbzhzdU9XREZZTDBpVE1TamJHZGpJeXc0ZHpNdTc5UXJvTEpjY3FFcGRzV3VENlJPTVN4MU9tU0ptZEVtQTdXNURYSlYwOEN5NGlyMnhuRGtYbU1jcHNmbk5KU2tvTWRGRUp6R043RnhPMzB2cFNyUUoyYm5LWHVMTHJEKy8rcFdvb28wUmdDUlB0MlpoR21mRHpZK0xzNjBScm1jNTZJUWVIYURRNnZYa3pycWplbTE2Ky94bjRBT2J1UUY2NW0wc0ZPZkVkLzlKNUVkbEYzajloUEd0UUN6Qks2d0Y3STVQWnRvZC9BanhCVzI5RFgvZnczellNVTZoQTJac293Y2wxbzROM05MME0vQVVVNGJaSDF4OUYwNzhaZktxNXdsSlR0M0haczJINGNFZ05rN1d3S3ZUajQ1SEZvUDMxTlpVaktLTjJheGJZdVlQMndKR0dzdjVWRW8rYUlMQWpHblVLaG5YUXdvUjJKVk5VbHd5Y1h4OHdtVmFOUk1CR1RIV1hqcE5CYk90ZWx5dDRDaEtLcWcvSGhDRVF3Q2lQZ3I3dHB3THVucmVLQWdlUTZ3WG8wMWZiOWxoKzMwUDhhak5BWDFJTGMrbEkrdXlsZjRmWEs4Zy9BN3hPMDRSeUY3cGFlU1dBMnZ2eFc3MkVWS2wrZmhCamhMUmwyTUsxdWZUdXRRblV6eC8vMW9nVStvNnNzU1RQOGtRLy82RjE0QkdzSXpZNE1VcEo2bmpFRHkxZENuVnNVeHN3VjJHQm9wNS9PT3RuaGs5WlRCbnBhS1NTemdTUGhiYURValc1TjNLMGtHVStKZ3c3TzNsOFJrS29yNU84YWFkb0s3Y2R2L1FGazlMMWpZdUorN2NpaDkrWlJlS3N0dldOVlpubllBT1E1TGlwQ2VCR2E4NFVNRFE1UHh0UFEwNTlKaHVwdGxTUk14ckY3UVB4bjZwR0kyVTRmNllWa1c1NE9oR2VUd2ljYy9yZVNDU3oxQ0h4YnR1NGpLU1pPLzZCKzNud2hUaGFaYmVTVEtnbWV2ZjlxdkdjcUNydkVJMnJsZHFsWndTZDR4enFtdDJBWGM5VVNQbWs4dG9ld05tVnhxS21MRjFiZzkzMWdWSXlsVU0yNDFoWFd6WU1VM1Y1ZCtKVExlbVdkYVpCcWxPUzBMK3VmRVZTaE93U3h0bFVrTXRUUjJ4UkVLd0pJNk1GakI3TC8rN3podTJxSkdNbzB0Nzl2eWFMTVUwM1hRbVdaWHlFUGdUT2QrUlc0dDdaM0JYUWFsYnNkSjdmWWF3Y0FrUjJ5L2NZeFordk5Kd0VTZFNtM1lIWWE5Sm5RbUFVUjVrS1BQOC9zeEFMUGJWckttLytXUUR1V203c2VYWlQ2VnY2LzdzVThqOFdOODBORk9lL3g1QThPL0ZTTDdZQ1JZUDlvVC9EKzhMclN0V1I5K3A4b2hXWW1nVUdPNVNpMlZxb2lVTnVlVFcvVDNQeVViQ2pEWEZ1RnR5THFTTTN5cGRmaG9PcU9mUFM1ZU9Fc1R1OVZLYzRnUG9jbWlCQ3Q5RHVqc3lMV2VYZWdSZ1k4aWVlbXdhckZtT0crR0thT3orSm10RDdaY0haZVZRVk5Kd0xuOTBNa2JjL3RVQ0dSMjRXSy94a3I2QWFrclp3dWZ3L2xSZnlUR04yRTBsU3NiNWdJMmJrUmcyN3c0dkN6VkZrTGxVV2R5MUhwMlAxdkh1Rm1IcDhjSzFmR2FHbmhRUi94NkhzanVKVlBqK2NjT2JCRWc5VkFmbEtkS3d6WWx2cnd3aVY3VHdCY1EyN3NmY2hUc3hvYm54MDdqNDdpMFdFVHMyNTYvWkk2WWpsRHNxRnE5L1RWOFp1czlKaTB6S2hWdy9UZjZxMzcrNW8vWjdkeHdNQytUcHRsT3NoRnE4L01tQVAwbFlpZUNNd0JGc3Q5cHV4blVTMGVML1BzbUFXYnJpU3J6a1RoTk1qRC9Sb3d0ZGN6UThxMmZtTTdVd1FoV0pwWWJ3YzIvdmtrbWhUNFRDbzkzdG1qRTNWUEdaN2N6K2dvalRDd3BnNVhkNTRxN3BwdnVleWdIbVhKdStRL2U5dDljUzhjdTRJanFqU3JtMjE4Y05uNEVyQllTdE1zUlhJRlNJM2NlVWJzV1lvb0NRTzZuZ3FVQjVkSXJZY3MxTVVXSUhPYU9tc1llUnhlclNjaS83bjRVcTVic0xmNkJjRTNHUVl2S2dIbDZjME1FU2kvQTZCMjBnYnFpKzhlK0piUmw2NGF2OEFKMDNZUWZaZUZUTWZWeEVFaG9lSjM1czBBbFg4WDQ4VnF6YXlQSDQ4MGZ4akpLaGpnc2gxUk5lQXkxMU5tK3pvUGVsVjR1dlZxakwrTFlvR3hGSmVVRWU0Q1RjUzhJOEtxRHVDbGxXS2xxNExPU0hjMGNDdW92akVJdGNwUWFDU0Zzc3BrQW96Z042QXpqWEVrMGhUdXVOU1V4VnJIUFEvSVFrUzdaUGt4SGtnQlhzeWJtRVUvRml3NVhhY1Zic1oyN2JTYk9qczhiaFVPWUdDM1ZNSk5NQnMxVy9MWUJaTno3d0I1R0pJWVhONXZVN2VPd1cxYTVsRHQ0RXpETmZOWFFVeWZRQnYwSTlNTHd4ZTloK2pZNER4V3UrZWxaaVlQbUw4V01yL3ZVNTc5VnFzM2FRTFhPMHBZSzYrRnZnUG1NWkRSUHE3dkxXQkVnbDhYOVVURlpxTEd6cnk0d3loalYwdmFKVXNMQTZNUStZTkxZVjNoS0gxNWZ1TlZhMExlNDBFaEU1UWJpT2lSMGNOQlhWN1dYRmdwYlVLUGZIcm5jeW5oOVdkeVZUcGxzU1NWNVFZV2pPY0huS3JkRVRHdHIySXJIQ0ZVdzBBUTNVc0RHQmk0OE94MU9YR2VMaW5ESTJ0dW8vb1h4bFlEWmd3ZzJwQWkzU3dFUnhzZXQzM3FTS09DMktjblZZbk5NNmRiR0ZLS2lrSlc5OVpIWnQxSzlzdUc5ZWFUQzl3Z29naVdWV1R5Q0trSzFmZFBwS3BEcTBBQndReFA0TkRqaUl3N29scll1R1VXLzhUWm5YU1diUktDRERJcXJSdllhcDE2RFMzaGFHbjFuaE1FSVcvWHJYWUg1dUtBb09ZZ211Q0o2WDVnLzE3Y3ZCSTJid3l4ZmxCOTM5THVoODhIR1NqWmttTzZyRVFGc3hLeUsrOTBhZ0NjUEhvS3FWY2gzQ2VaV1VlV2duZzNDMEZ4anZOTk5RRzVmTktpTzJYSjlTaXhWWHRNZzJham5GL0RxOTZDbE92Y1l6ZGU0QngyRUsvdjhxSWx2czBBRTJlczZTeUY0OUNzVTRrM1JtK01pSkxnRUNqQ0xYeGNLNSttTVA1bmRweTlicml2bWhKT1hoeTVTRkpsMnNOY2RkaVRoYXFNblFsbUIyK091WllHQkg0SVA5N3N1NEw4aVp3TE9jQ3dod1ZTYVhJRmhZN2lzR05tTHJQM205YWJmUEI2MlJvVHQ1azB3SktjVUxmeXBQaGFlK2VEdkFld1c4MFh2b1VTdFcxK3ZleUVLWmRaNjBJRkpaSzRHUDZZaG9rMitWcldHRkZDYnhPN0FvT1FNL2I5VGxDV3g2Wi9Za3RzeWk3Y256SDU2cXEvOS9NcmxreThKTmtsNFdRNGhOT3Z0Wk5Fcy85S2ZOUzBhdHZGMkxjNGtFNTZocHM2dHlCTHA3bzZnN3UraDdERklodS9pamtxQ0FhTnZPb3RRK0NNUlVLbWtEY1cvMlFDeC96dW1jOGVNNjVDMmlKdjE4ODAraFJ0ZFlkcG5BTzdkYnZtbXA3aFM5cCtRRTBsdllRT3lCajFVMU5pRUliaGdIMEExcDJSNm1WbHBBbkNPSWRxbFFFQ2ZHYngvd0ltWkd3MVpjdzFDell1YWlMVkhnaHdlNGFoUURwN2wzSndDRnNlc1ZudFFmWjA3R2s2WlYySWdYeGtxckdGb0l6YjZrYmowcmFvenN2YU1ranJuMUx2TkZUNEdMZUc4QTR2UnEydTVHK1UyT0dERUphWW9lcUtUZHoxbUFzNkwvaUdRK2tjL2JTV0xMNk5EbU5rLzRESENBb3lqZlJtdWtaUTZ1NXJ2ZVMvNUJ1WWluT1kveWprUXlsN25DZWxtbzZHT2lENWE2VU5WVmVOMlFCUnIxS2lpRlhWRlhhSzlLYXJ0WEhRTVQwdUhHeVhsYmJnTHJSMjc1eEJkZTd5SzRyQTVSQ3VXMzZidHZUcWhpd3lWcGM3VUZEQXl0ZStsbVpkQkxoQkE1bkxHemJLc0VNc081dFRtdk9mWCt4SWxWNE5PbXpiSG1TVjVSUXRENkdPaWcxVWlCSzdxMHVHVFR6TzNaeTNQM2FBS3c0UU4wc29qY3p4SkNSMUFtc3pibXRROFV6Y20ySnJkZER1dTA5dGpMRFJSZUp1OHptUHNPUHRRZU9EVzZxUE9xMVpBbjl5UE5NZDBHaitZMEJZcWtOcU0vMnZsV0t0MEVaQ2toMUZwUmU5SlpjOTAzYnFnMzRUN1FLNnZhNkVQdUxCdm5oVDR4RElhTnB3ZmZzSDVzaGFaQVVUK1FMN2p4WFFYYUErUm55THdZNjVqTElnMWZBaXgwL2RCWFpPV1laZ2N3N2xBU1NQcStaNGVuSTdkTDZmbEVnaEZtT3EzeS9pM2Z1L2FobGFCQklacXpna2t1bUtnT0hVclo5VXdIWXFSQzZPbk9XcGtDcGQ5MGJSdWw0aGJQcUhSdlN0ZGNRSmtUTzRKdnZPaW9PVTBrMGljZHN0R0RueklMaGtmd0hWbDFtWjZPM0w4NkxuUDlrUGRXZUNGdHIydHNxZXV6S2FGK2ZtSVRmZFc0Z1RkVnZOdlVUY2gwS0oxWWVObjY0QTVwMDUvbllSbjIxSm5tR2IvZnhpeno0eE5RM2JVSzV4UVNiU0NZWFpHbEJoNkt3U2JZM1RFUytXckhuZUFZWnViM1UwQUtNRVNPMW9nOC9CWW1DWGVaSWE3b2k1ZEs5UThrdlFFRVVDSnBLTjZSbVJHbW9MWmpnNnhxMjIwVTNEMFc5c1QzSE9ENTRCajJYYjJBM3JOTW5tUFdMUUpJbzJvN3NJb1dNMlZYYlJxcWxWYk5pSU9pRHpDbDdjUmx0emN6SE53Wmw4TmRQK3BxeGt2NGt6eEZGclpsd3JZeW9MdFR3T1YrcXpWWWEyZWVnZzhxbE1MQlg0ckhNZGNORWpGQ3o0cWtkdVdUd1R0SDg2YjNiMFM5UWdIc0JXaUEwY0NUZlAzejNPOVhyL0tZTkl5dktPOGhORUQ5SVdwaTdwV0IzYnVEZlBHdHdRWVV2R3I2WkYvR2t4T0VCRExUVWtvazJuUFVzZ0NKM1ZtWGhMRzh
